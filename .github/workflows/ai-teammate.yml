@@ -70,6 +70,10 @@ jobs:
         dmtools || echo "dmtools version failed"
         cursor-agent --version || echo "cursor-agent version failed"
 
+    - name: Make scripts executable
+      run: |
+        chmod +x cicd/scripts/*.sh
+
     - name: Run AI Teammate
       env:
         CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
