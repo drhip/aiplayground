@@ -76,6 +76,8 @@ jobs:
 
     - name: Run AI Teammate
       env:
+        ENCODED_CONFIG: ${{ inputs.encoded_config }}
+      
         CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         MODEL: composer-1
         AGENT_DISABLE_WATCHDOG: "1"
