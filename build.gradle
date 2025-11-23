@@ -21,6 +21,9 @@ dependencies {
     // Spring Boot Starter Web for HTTP client and web functionality
     implementation 'org.springframework.boot:spring-boot-starter-web'
     
+    // Spring Boot Validation for configuration validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.junit.jupiter:junit-jupiter'
