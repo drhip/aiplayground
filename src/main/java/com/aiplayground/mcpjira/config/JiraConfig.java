@@ -1,5 +1,6 @@
 package com.aiplayground.mcpjira.config;
 
+import com.aiplayground.mcpjira.auth.JiraAuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +14,6 @@ import reactor.util.retry.RetryBackoffSpec;
 import io.netty.channel.ChannelOption;
 
 import java.time.Duration;
-import java.util.Base64;
 
 /**
  * Configuration class to enable Jira configuration properties and HTTP client.
@@ -25,10 +25,13 @@ import java.util.Base64;
 public class JiraConfig {
 
     private final JiraConfigProperties jiraConfigProperties;
+    private final JiraAuthenticationService authenticationService;
 
     @Autowired
-    public JiraConfig(JiraConfigProperties jiraConfigProperties) {
+    public JiraConfig(JiraConfigProperties jiraConfigProperties, 
+                     JiraAuthenticationService authenticationService) {
         this.jiraConfigProperties = jiraConfigProperties;
+        this.authenticationService = authenticationService;
     }
 
     /**
@@ -36,7 +39,7 @@ public class JiraConfig {
      * 
      * Configuration includes:
      * - Base URL from JiraConfigProperties
-     * - API token authentication (email + token) using Basic Auth
+     * - API token authentication (email + token) using Basic Auth via JiraAuthenticationService
      * - Connection timeout: 30 seconds (from AIP-77 decision)
      * - Read timeout: 60 seconds (from AIP-77 decision)
      * - Retry logic: 3 retries with exponential backoff (multiplier 2.0) (from AIP-77 decision)
@@ -51,10 +54,8 @@ public class JiraConfig {
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 
                         (int) Duration.ofSeconds(jiraConfigProperties.getConnectionTimeout()).toMillis());
 
-        // Create Basic Auth header (email:token encoded in base64)
-        String credentials = jiraConfigProperties.getEmail() + ":" + jiraConfigProperties.getApiToken();
-        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
-        String authHeader = "Basic " + encodedCredentials;
+        // Use authentication service to get auth header
+        String authHeader = authenticationService.getAuthHeader();
 
         return WebClient.builder()
                 .baseUrl(jiraConfigProperties.getBaseUrl())

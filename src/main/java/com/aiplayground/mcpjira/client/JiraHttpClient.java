@@ -1,5 +1,6 @@
 package com.aiplayground.mcpjira.client;
 
+import com.aiplayground.mcpjira.auth.JiraAuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -20,19 +21,22 @@ import reactor.util.retry.RetryBackoffSpec;
  * - Connection timeout: 30 seconds
  * - Read timeout: 60 seconds
  * - Retry logic: 3 retries with exponential backoff (multiplier 2.0)
- * - Error handling with appropriate exception mapping
+ * - Error handling with appropriate exception mapping including authentication errors
  */
 @Component
 public class JiraHttpClient {
 
     private final WebClient webClient;
     private final RetryBackoffSpec retrySpec;
+    private final JiraAuthenticationService authenticationService;
 
     @Autowired
     public JiraHttpClient(@Qualifier("jiraWebClient") WebClient webClient,
-                         @Qualifier("jiraRetrySpec") RetryBackoffSpec retrySpec) {
+                         @Qualifier("jiraRetrySpec") RetryBackoffSpec retrySpec,
+                         JiraAuthenticationService authenticationService) {
         this.webClient = webClient;
         this.retrySpec = retrySpec;
+        this.authenticationService = authenticationService;
     }
 
     /**
@@ -185,6 +189,7 @@ public class JiraHttpClient {
 
     /**
      * Maps exceptions to JiraHttpClientException with appropriate error messages.
+     * Handles authentication errors specifically (401 Unauthorized).
      * 
      * @param throwable The original exception
      * @return JiraHttpClientException with mapped error details
@@ -193,10 +198,32 @@ public class JiraHttpClient {
         if (throwable instanceof WebClientResponseException) {
             WebClientResponseException ex = (WebClientResponseException) throwable;
             HttpStatus statusCode = HttpStatus.resolve(ex.getStatusCode().value());
+            
+            // Handle authentication errors specifically
+            if (statusCode == HttpStatus.UNAUTHORIZED) {
+                String message = String.format(
+                    "Jira API authentication failed (401 Unauthorized). " +
+                    "Please verify your email (%s) and API token are correct. " +
+                    "Response: %s",
+                    authenticationService.getEmail(),
+                    ex.getResponseBodyAsString()
+                );
+                return new JiraHttpClientException(message, ex, statusCode);
+            }
+            
             String message = String.format("Jira API request failed with status %d: %s", 
                     ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new JiraHttpClientException(message, ex, statusCode);
         }
+        
+        // Handle authentication service exceptions
+        if (throwable instanceof JiraAuthenticationService.AuthenticationException) {
+            return new JiraHttpClientException(
+                "Jira authentication configuration error: " + throwable.getMessage(), 
+                throwable
+            );
+        }
+        
         return new JiraHttpClientException("Jira API request failed: " + throwable.getMessage(), throwable);
     }
 
