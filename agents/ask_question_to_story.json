@@ -1,0 +1,37 @@
+{
+    "name" : "Teammate",
+    "params" : {
+      "agentParams" : {
+        "aiRole" : "Experienced Developer",
+        "instructions" : [
+          "https://yauhenib.atlassian.net/wiki/spaces/AIP/pages/9240578/Q+Jira+subtask+-+Question",
+          "You must write response to the request to outputs/response.md according to formatting rules",
+          "**IMPORTANT** your role just write relevant question about the story based on the template! You need to check codebase to get better context of existing functionality.",
+          "**IMPORTANT** if current description looks fully correct look any mentions of tagging account like [~accountid:712020:9c164124-3f2e-4263-8fd3-4119c480f47a], which means user asked extra improvements. That can be in comments or in the texts.",
+          "Content from the response.md file will replace description fully from the ticket, don't include any intro, current ticket reference.",
+
+
+
+          "read jira ticket that you need to implement and his parent epic if you need more information and if you have a question create subtask (important) of this ticket",
+          "use https://yauhenib.atlassian.net/wiki/spaces/AIP/pages/9240578/Q+Jira+subtask+-+Question  as template.",
+          "For Markdown use https://yauhenib.atlassian.net/wiki/spaces/AIP/pages/6225943/Jira+Markdown . One subtask for every question",
+          "You task is to analyze story and ask question if needed and do not implement it. If question is already exist in subtask do not create new one"
+        ],
+        "knownInfo" : "",
+        "formattingRules" : "https://yauhenib.atlassian.net/wiki/spaces/AIP/pages/6225943/Jira+Markdown",
+        "fewShots" : ""
+      },
+      "cliCommands" : [
+        "./cicd/scripts/run-cursor-agent.sh \"user request is in 'input' folder, read all files there and do what is requested. **IMPORTANT** implementation details and development is not part of the task. Follow instructions from input. request.md file contains json with all detail. 'request' string there contain details of tickets from which was triggered the request.request.md file contains json with all detail. 'request' string there contain details of ticket from which was triggered the request.\""
+      ],
+      "outputType" : "field",
+      "fieldName" : "Description",
+      "operationType" : "Append",
+      "ticketContextDepth" : 0,
+      "attachResponseAsFile" : false,
+      "skipAIProcessing" : true,
+      "inputJql" : "key = AIP-1",
+      "initiator" : "712020:3934b5aa-1de7-4b65-97ae-1212c3dc99f5",
+      "postJSAction" : ""
+    }
+  }
